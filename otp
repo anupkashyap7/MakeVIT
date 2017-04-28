@@ -1,0 +1,131 @@
+
+#include "sha1.h"
+#include "TOTP.h"
+#include <DS3231.h>
+#include<Keypad.h>
+
+
+DS3231 rtc(SDA,SCL);
+Time t;
+
+
+uint8_t hmacKey[] = {0x39, 0x30, 0x30, 0x33, 0x38, 0x35, 0x33, 0x38, 0x39, 0x31};
+
+TOTP totp = TOTP(hmacKey, 10);
+
+char code[7];
+char inputCode[7];
+int count = 0;
+
+const byte ROWS = 4; 
+const byte COLS = 4; 
+
+char hexaKeys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+byte rowPins[ROWS] = {4, 6, 7, 8}; 
+byte colPins[COLS] = {9, 10, 11, 12};  
+
+
+Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
+
+boolean doorOpen = false;
+int attempt = 0;
+
+void alert(int);
+
+void setup() {
+  pinMode(2,OUTPUT);
+  pinMode(3,OUTPUT);
+  Serial.begin(115200);
+  rtc.begin();
+  digitalWrite(3,LOW);
+  Serial.println();
+  Serial.println("----------------------------------------------------------------------------------------------------------");
+  Serial.println("WELCOME TO VAULT-TECH");
+  Serial.println("----------------------------------------------------------------------------------------------------------");
+  //Serial.println("AT+CWJAP=\"test\",\"test1234\"");
+  //Serial.println("AT+CIPMUX=0");
+  // Adjust the following values to match the current date and time
+  // and power on Arduino at the time set (use GMT timezone!)
+
+}
+void loop() {
+
+  //TOTP generation
+    /*if(strcmp(code, newCode) != 0) {
+    strcpy(code, newCode);
+    Serial.print(code);
+    Serial.print("\t");
+    Serial.println(rtc.getTimeStr());
+  }*/
+
+  //----------------------------------------------------
+  //Keypad read
+
+  char inputKey = customKeypad.waitForKey();
+  Serial.print(inputKey);
+  if(inputKey == '#')
+  {
+    count = 0;
+    Serial.println("\nArray Flushed");
+  }
+  else if(inputKey == '*')
+  {
+    count = 0;
+    doorOpen = false;
+    digitalWrite(2,LOW);
+    Serial.println("\nDoor Closed");
+  }
+  else
+  {
+     inputCode[count] = inputKey;
+     ++count;
+     if(count == 6)
+     {
+       Serial.println();
+       long GMT = rtc.getUnixTime(rtc.getTime());
+       char* newCode = totp.getCode(GMT);
+       inputCode[count] = '\0';
+       if(strcmp(newCode,inputCode)==0)
+       {
+         doorOpen = true;
+         count = 0;
+         Serial.println("Door opened");
+         attempt = 0;
+         digitalWrite(3,LOW);
+         digitalWrite(2,HIGH);
+
+       }
+       else
+       {
+        /* Serial.print("Key:");
+         Serial.print(newCode);
+         Serial.print("\tInput:");
+         Serial.println(inputKey);*/
+         Serial.println("Error");
+         //Serial.print("Code:");
+         //Serial.println(newCode);
+         count = 0;
+         ++attempt;
+         //alert(attempt);
+         digitalWrite(3,HIGH);
+       }
+     }
+  }
+
+}
+/*
+void alert(int n)
+{
+  Serial.println("AT+CIPSTART=\"TCP\",\"api.pushingbox.com\",80");
+  delay(1000);
+  String cip = "AT+CIPSEND=";
+  String send = "GET /pushingbox?devid=vEB6411451294FAE&numParam=1 HTTP/1.1\r\nHost: api.pushingbox.com\r\n\r\n";
+  cip += String(send.length());
+  Serial.println(cip);
+  Serial.print(send);
+}*/
