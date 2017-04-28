@@ -1,0 +1,28 @@
+
+#include "sha1.h"
+#include "TOTP.h"
+#include <DS3231.h>
+#include <LiquidCrystal.h>
+
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+DS3231 rtc(SDA,SCL);
+Time t;
+uint8_t hmacKey[] = {0x71, 0x77, 0x65, 0x72, 0x74, 0x79, 0x75, 0x69, 0x6f, 0x70};
+TOTP totp = TOTP(hmacKey, 10);
+
+void setup() {
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+  rtc.begin();  
+}
+void loop() {
+       Serial.println(rtc.getTimeStr());
+       long GMT = rtc.getUnixTime(rtc.getTime());
+       char* newCode = totp.getCode(GMT);
+       lcd.setCursor(0,0);
+        lcd.print("OTP : ");
+       lcd.print(newCode);
+       
+       delay(500);
+}
