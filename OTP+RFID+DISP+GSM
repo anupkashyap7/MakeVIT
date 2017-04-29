@@ -20,6 +20,7 @@ LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 
 
+
 DS3231 rtc(SDA,SCL);
 Time t;
 uint8_t hmacKey[] = {0x71, 0x77, 0x65, 0x72, 0x74, 0x79, 0x75, 0x69, 0x6f, 0x70};
@@ -66,6 +67,7 @@ void loop(){
   rf();
   otp();
   door();
+  alert();
   }
 
   
@@ -73,18 +75,19 @@ void rf() {
 
   if (RC522.isCard())
   {
-    digitalWrite(12, HIGH); 
-    delay(500);
-    digitalWrite(12, LOW); 
+     
     a="";
     RC522.readCardSerial();
     //Serial.println("Card detected:");
+    digitalWrite(12, HIGH); 
+    delay(500);
+    digitalWrite(12, LOW);
     for(int i=0;i<5;i++)
     {
     a.concat(RC522.serNum[i]);
     }
 
-    if(a == 2140240239145 || a == 421891911656){
+    if(a == "2140240239145" || a == "421891911656"){
       k=1;
       }
       else{
@@ -131,10 +134,9 @@ void otp(){
        }
        else
        {
-         Serial.println("Error");
          count = 0;
          l=0;
-         ++attempt;
+         attempt=attempt+1;
        }
      }
  
@@ -145,20 +147,20 @@ void otp(){
 
 void door(){
   if(k==1 && l!=1){
-    Serial.println("RF ID Verified");
+    //Serial.println("RF ID Verified");
     lcd.setCursor(0, 2);
     lcd.print("RF ID Verified  ");
     }
    else if(l==1 && k!=1){
-    Serial.println("OTP Verified");
+    //Serial.println("OTP Verified");
     lcd.setCursor(0, 2);
     lcd.print("OTP Verified    ");
     } 
 
   
   else if(k==1 && l==1){
-    Serial.println("Door open");
-    delay(500);
+    //Serial.println("Door open");
+    //delay(500);
     servo_test.write(180);
     lcd.setCursor(0, 2);
     lcd.print("Door Open       ");
@@ -166,8 +168,8 @@ void door(){
     
     }
   else if(k==2 && l==2){
-    Serial.println("Door closed");
-    delay(500);
+    //Serial.println("Door closed");
+    //delay(500);
     servo_test.write(0);
     lcd.setCursor(0, 2);
     lcd.print("Door Closed     ");
@@ -175,5 +177,24 @@ void door(){
   }
   else{}  
     }  
-  
+
+  void alert(){
+
+    if(attempt>2){
+      Serial.println("AT+CMGF=1");   
+      delay(1000);  
+      Serial.println("AT+CMGS=\"+919003853891\"\r");
+      delay(1000);
+      Serial.print("Unauthorized access Detected at - ");
+      Serial.print((rtc.getTimeStr()));
+      Serial.print(" GMT");
+      delay(100);
+      Serial.println((char)26);
+      delay(1000);
+      attempt=0;
+      
+      }
+    
+    
+    }  
 
