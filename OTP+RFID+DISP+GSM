@@ -14,7 +14,7 @@ String a="";
 int k=0;
 int l=0;
 Servo servo_test;
-int angle = 0;
+
 LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
 
@@ -52,6 +52,7 @@ int attempt = 0;
 void alert(int);
 
 void setup() {
+  servo_test.write(0);
   Serial.begin(9600);
   rtc.begin();
   SPI.begin(); 
@@ -176,6 +177,9 @@ void door(){
     lcd.setCursor(0, 2);
     lcd.print("Door Closed     ");
     delay(100);
+    count=0;
+    k=0;
+    l=0;
   }
   else{}  
     }  
