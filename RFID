@@ -1,9 +1,14 @@
 #include <SPI.h>
+#include<dht.h>
+dht DHT;
+#define DHT11_PIN 3
 #include <RFID.h>
 #define SDA_DIO 9
 #define RESET_DIO 8
 RFID RC522(SDA_DIO, RESET_DIO); 
 String a="";
+String b="";
+const int gasPin = A0;
 
 void setup()
 { 
@@ -14,6 +19,8 @@ void setup()
 
 void loop()
 {
+  String b="";
+  b=analogRead(gasPin);
   if (RC522.isCard())
   {
     String a="";
@@ -23,7 +30,10 @@ void loop()
       a.concat(RC522.serNum[i]);
     }
     Serial.println(a);
-    Serial.println();
   }
-  delay(1000);
+int chk = DHT.read11(DHT11_PIN);
+Serial.print("Temparature:");
+Serial.println(DHT.temperature, 1);
+Serial.println(b);
+delay(1000);
 }
