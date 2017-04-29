@@ -60,6 +60,8 @@ void setup() {
   int k=0;
   int l=0;
   pinMode(12, OUTPUT);
+  lcd.setCursor(0, 2);
+    lcd.print("WELCOME         ");
 
 }
 
