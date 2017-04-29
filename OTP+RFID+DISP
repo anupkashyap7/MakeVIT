@@ -4,6 +4,7 @@
 #include <DS3231.h>
 #include<Keypad.h>
 #include <SPI.h>
+#include <LiquidCrystal.h>
 
 #include <RFID.h>
 #define SDA_DIO 9
@@ -14,6 +15,8 @@ int k=0;
 int l=0;
 Servo servo_test;
 int angle = 0;
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
 
 
 
@@ -55,6 +58,7 @@ void setup() {
   servo_test.attach(10);
   int k=0;
   int l=0;
+  pinMode(12, OUTPUT);
 
 }
 
@@ -69,6 +73,9 @@ void rf() {
 
   if (RC522.isCard())
   {
+    digitalWrite(12, HIGH); 
+    delay(500);
+    digitalWrite(12, LOW); 
     a="";
     RC522.readCardSerial();
     //Serial.println("Card detected:");
@@ -139,9 +146,13 @@ void otp(){
 void door(){
   if(k==1 && l!=1){
     Serial.println("RF ID Verified");
+    lcd.setCursor(0, 2);
+    lcd.print("RF ID Verified  ");
     }
    else if(l==1 && k!=1){
     Serial.println("OTP Verified");
+    lcd.setCursor(0, 2);
+    lcd.print("OTP Verified    ");
     } 
 
   
@@ -149,6 +160,8 @@ void door(){
     Serial.println("Door open");
     delay(500);
     servo_test.write(180);
+    lcd.setCursor(0, 2);
+    lcd.print("Door Open       ");
     delay(100);
     
     }
@@ -156,6 +169,8 @@ void door(){
     Serial.println("Door closed");
     delay(500);
     servo_test.write(0);
+    lcd.setCursor(0, 2);
+    lcd.print("Door Closed     ");
     delay(100);
   }
   else{}  
