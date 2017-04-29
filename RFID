@@ -3,6 +3,7 @@
 #define SDA_DIO 9
 #define RESET_DIO 8
 RFID RC522(SDA_DIO, RESET_DIO); 
+String a="";
 
 void setup()
 { 
@@ -15,15 +16,14 @@ void loop()
 {
   if (RC522.isCard())
   {
+    String a="";
     RC522.readCardSerial();
-    Serial.println("Card detected:");
     for(int i=0;i<5;i++)
     {
-    Serial.print(RC522.serNum[i],DEC);
+      a.concat(RC522.serNum[i]);
     }
-    Serial.println();
+    Serial.println(a);
     Serial.println();
   }
   delay(1000);
 }
-
