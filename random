@@ -1,8 +1,10 @@
+#include <Servo.h>
 #include "sha1.h"
 #include "TOTP.h"
 #include <DS3231.h>
 #include<Keypad.h>
 #include <SPI.h>
+
 #include <RFID.h>
 #define SDA_DIO 9
 #define RESET_DIO 8
@@ -10,6 +12,8 @@ RFID RC522(SDA_DIO, RESET_DIO);
 String a="";
 int k=0;
 int l=0;
+Servo servo_test;
+int angle = 0;
 
 
 
@@ -48,6 +52,7 @@ void setup() {
   rtc.begin();
   SPI.begin(); 
   RC522.init();
+  servo_test.attach(10);
   int k=0;
   int l=0;
 
@@ -57,8 +62,9 @@ void loop(){
   rf();
   otp();
   door();
-  
   }
+
+  
 void rf() {
 
   if (RC522.isCard())
@@ -92,6 +98,12 @@ void otp(){
   {
     count = 0;
   }
+  else if(inputKey == '*')
+  {
+    count = 0;
+    k=2;
+    l=2;
+  }
   else
   {
      inputCode[count] = inputKey;
@@ -118,14 +130,35 @@ void otp(){
          ++attempt;
        }
      }
+ 
+
   }
 }
-
 }
 
 void door(){
-  if(k==1 && l==1){
-    Serial.println("Door open");
+  if(k==1 && l!=1){
+    Serial.println("RF ID Verified");
     }
+   else if(l==1 && k!=1){
+    Serial.println("OTP Verified");
+    } 
+
   
+  else if(k==1 && l==1){
+    Serial.println("Door open");
+    delay(500);
+    servo_test.write(180);
+    delay(100);
+    
+    }
+  else if(k==2 && l==2){
+    Serial.println("Door closed");
+    delay(500);
+    servo_test.write(0);
+    delay(100);
   }
+  else{}  
+    }  
+  
+
